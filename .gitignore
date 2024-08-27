@@ -1,0 +1,56 @@
+# Qt specific
+*.pro.user
+*.qmake.stash
+*.pro.user.*
+
+# Qt Creator specific
+*.autosave
+*.creator.user.*
+*.creator.*.log
+*.creator.*.bak
+*.autosave.*
+
+# Build directories
+build/
+build-*/
+
+# CMake specific
+CMakeLists.txt.user
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+
+# Project-specific
+*.user
+*.log
+*.bak
+*.swp
+*.swl
+
+# Ignore compiled resource files
+qrc_*.cpp
+
+# Ignore moc files
+moc_*.cpp
+moc_*.h
+
+# Ignore generated form files
+ui_*.h
+
+# Ignore generated translation files
+*.qm
+
+# Ignore Qt Installer Framework build artifacts
+*.exe.cache
+*.dll.cache
+*.7z
+*.qspatch
+*.app
+
+# General
+.DS_Store
+Thumbs.db
+*.pyc
+*.pyo
+__pycache__/
