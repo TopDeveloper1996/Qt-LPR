@@ -1,7 +1,7 @@
 #include "sendingdatathreadworker.h"
 
-SendingDataThreadWorker::SendingDataThreadWorker(QString ServerUrl, QString Token, QObject *parent)
-    : QThread{parent}, m_serverUrl(ServerUrl), m_token(Token)
+SendingDataThreadWorker::SendingDataThreadWorker(QString RunningFolder, QString ServerUrl, QString Token, QObject *parent)
+    : QThread{parent}, m_runningFolder(RunningFolder), m_serverUrl(ServerUrl), m_token(Token)
 {}
 
 void SendingDataThreadWorker::run()
@@ -43,6 +43,16 @@ void SendingDataThreadWorker::processNextResult()
     QString time = QDateTime::fromString(data.at(2), "yyyy-MM-dd-hh-mm-ss-zzz").toString(Qt::ISODateWithMs);
     QString direction = data.at(3);
 
+    //Writing log
+    QFile file(m_runningFolder + "\\log.txt");
+    if (!file.open(QIODevice::Append | QIODevice::Text))
+    {
+        QMessageBox::warning(nullptr, "Failed to write log...", "Can't find log file!");
+        return;
+    }
+    QTextStream in(&file);
+    in<<direction<< "\t" <<camera << "\t"<< time << "\t"<< number << "\n";
+    file.close();
     // Prepare the multipart/form-data request
     QHttpMultiPart *multiPart = new QHttpMultiPart(QHttpMultiPart::FormDataType);
 

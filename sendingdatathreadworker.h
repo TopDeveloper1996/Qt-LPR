@@ -15,12 +15,13 @@
 #include <QHttpMultiPart>
 #include <QHttpPart>
 #include <QEventLoop>
+#include <QMessageBox>
 
 class SendingDataThreadWorker : public QThread
 {
     Q_OBJECT
 public:
-    explicit SendingDataThreadWorker(QString ServerUrl, QString Token, QObject *parent = nullptr);
+    explicit SendingDataThreadWorker(QString RunningFolder, QString ServerUrl, QString Token, QObject *parent = nullptr);
 protected:
     void run() override;
 signals:
@@ -37,7 +38,7 @@ private:
     QHttpPart createTextPart(const QString& name, const QString& value);
     QHttpPart createImagePart(const QString& name, const QString& imageFile);
 
-    QString m_serverUrl, m_token;
+    QString m_serverUrl, m_token, m_runningFolder;
     QNetworkAccessManager *m_networkManager;
 
     QMutex m_mutex;
