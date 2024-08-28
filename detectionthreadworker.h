@@ -6,6 +6,7 @@
 #include <QPixmap>
 #include <QDebug>
 #include <QDateTime>
+#include <QTimer>
 #include <QDir>
 #include <QRegularExpression>
 #include <QStandardPaths>
@@ -33,10 +34,14 @@ signals:
     void m_currentFrame(QPixmap Frame);
     void m_detectionResult(QStringList DetectionResults);
     void m_errorMessage(QString Msg);
+private slots:
+    void m_handleTimeout();
 private:
     bool m_loadModel();
 
     QVector<DetectionKeyPoint> m_keyPoints;
+
+    QTimer *m_timer;
 
     QString m_runningFolder, m_direction, m_cameraUrl;
     QStringList m_detectionResultFiles;

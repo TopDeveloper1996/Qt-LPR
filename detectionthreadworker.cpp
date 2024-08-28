@@ -42,10 +42,11 @@ void DetectionThreadWorker::run()
         m_keyPoints.append(DetectionKeyPoint(int(frameHeight / 20 * 13), int(frameHeight / 4 * 3)));  // bottom
 
         int curPosition = -1;
+        int timer = 0;
 
         // preparation for plate tracking
-        int prev_x = 0, prev_y = 0;
-        bool isSamePlate = false;
+        // int prev_x = 0, prev_y = 0;
+        // bool isSamePlate = false;
 
         // main process
         while (!isInterruptionRequested()) {
@@ -64,28 +65,8 @@ void DetectionThreadWorker::run()
             // validation of selected detection area
             if(detection.confidence != 0 && detection.box.height < detection.box.width && detection.box.y < m_keyPoints.at(4).bottom && detection.box.y > m_keyPoints.at(0).top){
 
-                // plate tracking
-                if(m_direction == "EXIT"){
-                    if(detection.box.x - prev_x > 50 && detection.box.y - prev_y > 20){
-                        isSamePlate = false;
-                    }else {
-                        isSamePlate = true;
-                    }
-                }else{
-                    if(prev_x - detection.box.x > 50 && detection.box.y - prev_y > 20){
-                        isSamePlate = false;
-                    }else {
-                        isSamePlate = true;
-                    }
-                }
-                prev_x = detection.box.x;
-                prev_y = detection.box.y;
-
-                // Sending previous result when there is a new plate
-                if(!isSamePlate){
-                    emit m_detectionResult(m_detectionResultFiles);
-                    m_detectionResultFiles.clear();
-                }
+                //initialize timer
+                timer = 0;
                 // Save vehicle images to recognize numbers from them
                 for(int i =0; i< 5; i++){
                     if(m_keyPoints.at(i).top < detection.box.y && m_keyPoints.at(i).bottom > detection.box.y && curPosition != i){
@@ -113,8 +94,14 @@ void DetectionThreadWorker::run()
                 }
 
                 Drawer::drawDetection(detection, cameraFrame);
+            }else{
+                timer ++;
             }
 
+            if(timer > 30){
+                m_handleTimeout();
+                timer = 0;
+            }
             // emit signal to display frame in label
             double aspectRatio = static_cast<double>(cameraFrame.cols) / cameraFrame.rows;
             int desiredWidth = 400;
@@ -133,11 +120,19 @@ void DetectionThreadWorker::run()
         }
         camera.release();
 
+        exec();
+
     } catch (const std::exception& ex) {
         std::cout << ex.what() <<std::endl;
         QString errorMessage = QString::fromStdString(ex.what());
         emit m_errorMessage(errorMessage);
     }
+}
+
+void DetectionThreadWorker::m_handleTimeout()
+{
+    emit m_detectionResult(m_detectionResultFiles);
+    m_detectionResultFiles.clear();
 }
 
 bool DetectionThreadWorker::m_loadModel()
