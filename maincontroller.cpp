@@ -27,9 +27,9 @@ MainController::MainController(QWidget *parent)
                 QString serverURL = settingInfo.at(1).split("&").at(0).split("=").at(1);
                 QString token = settingInfo.at(1).split("&").at(1).split("=").at(1);
 
-                m_sendingThread = new SendingDataThreadWorker("C:\\cpm", serverURL, token);
-                connect(m_recognitionThread, &RecognitionThreadWorker::m_recognitionResult, m_sendingThread, &SendingDataThreadWorker::m_handleRecognitionResult);
-                m_sendingThread->start();
+                // m_sendingThread = new SendingDataThreadWorker("C:\\cpm", serverURL, token);
+                // connect(m_recognitionThread, &RecognitionThreadWorker::m_recognitionResult, m_sendingThread, &SendingDataThreadWorker::m_handleRecognitionResult);
+                // m_sendingThread->start();
 
             }else{
                 DetectionThreadWorker *thead = new DetectionThreadWorker("C:\\cpm", settingInfo.at(0), settingInfo.at(1));

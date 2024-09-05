@@ -56,7 +56,7 @@ void RecognitionThreadWorker::run()
             while (!m_detectionResults.isEmpty()) {
 
                 QStringList detectionResults = m_detectionResults.dequeue();
-                QStringList recognizedNumbers;
+                QStringList recognizedNumbers, toRemove;
 
                 for(QString fileName:detectionResults){
 
@@ -88,11 +88,15 @@ void RecognitionThreadWorker::run()
                             }
                         }else{
                             QFile::remove(fileName);
-                            detectionResults.removeOne(fileName);
+                            toRemove.append(fileName);
                         }
                     }else{
                         throw std::runtime_error("Failed to read temp vehicle image file...");
                     }
+                }
+
+                for (QString fileName : toRemove) {
+                    detectionResults.removeOne(fileName);
                 }
 
                 if(recognizedNumbers.length() != 0){
