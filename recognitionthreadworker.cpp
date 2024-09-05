@@ -58,6 +58,8 @@ void RecognitionThreadWorker::run()
                 QStringList detectionResults = m_detectionResults.dequeue();
                 QStringList recognizedNumbers, toRemove;
 
+                QString direction;
+
                 for(QString fileName:detectionResults){
 
                     cv::Mat img = cv::imread(fileName.toStdString());
@@ -67,6 +69,7 @@ void RecognitionThreadWorker::run()
                         // Extraction data from vehicle image file name
                         QStringList detectionData = fileName.split("#");
 
+                        direction = detectionData.at(3);
                         QString plate_x = detectionData.at(4);
                         QString plate_y = detectionData.at(5);
                         QString plate_w = detectionData.at(6);
@@ -95,6 +98,22 @@ void RecognitionThreadWorker::run()
                     }
                 }
 
+                if(detectionResults.length() > 1){
+                    QString first_pic = detectionResults.first();
+                    QString last_pic = detectionResults.last();
+
+                    QStringList first_pic_data = first_pic.split("#");
+                    QStringList last_pic_data = last_pic.split("#");
+
+                    if((last_pic_data.at(4).toInt() - first_pic_data.at(4).toInt()) > 0){
+                        direction = "ENTER";
+                    }else{
+                        direction = "EXIT";
+                    }
+                }
+
+                qDebug()<< direction;
+
                 for (QString fileName : toRemove) {
                     detectionResults.removeOne(fileName);
                 }
@@ -111,18 +130,40 @@ void RecognitionThreadWorker::run()
 
                     // Remove temp files except one to send to server, one vehicle and one plate
                     int randomIndex = QRandomGenerator::global()->bounded(detectionResults.size());
-                    QString selectedFile = detectionResults[randomIndex];
+
+                    QString selectedVehicleFile = detectionResults[randomIndex];
+                    QString selectedPlateFile = selectedVehicleFile;
+                    selectedPlateFile.replace("vehicle#", "plate#");
 
                     for(QString tempFile: detectionResults){
-                        if(tempFile != selectedFile){
+                        if(tempFile != selectedVehicleFile){
                             QFile::remove(tempFile);
                             QFile::remove(tempFile.replace("vehicle#", "plate#"));
                         }
                     }
 
+                    // check direction again
+                    QString detectedVehicleImage = selectedVehicleFile;
+                    QString detectedPlateImage = selectedPlateFile;
+
+                    detectedPlateImage.replace("ENTER", direction);
+                    detectedVehicleImage.replace("ENTER", direction);
+                    detectedPlateImage.replace("EXIT", direction);
+                    detectedVehicleImage.replace("EXIT", direction);
+
+                    if (QFile::rename(selectedVehicleFile, detectedVehicleImage)) {
+                        qDebug() << "File renamed successfully!";
+                    } else {
+                        qDebug() << "Failed to rename file.";
+                    }
+
+                    if (QFile::rename(selectedPlateFile, detectedPlateImage)) {
+                        qDebug() << "File renamed successfully!";
+                    } else {
+                        qDebug() << "Failed to rename file.";
+                    }
                     // send data to sending thread
-                    QString detectedVehicleImage = selectedFile;
-                    QString detectedPlateImage = selectedFile.replace("vehicle#", "plate#");
+
                     QString recognizedNumber = finalNumber;
 
                     QStringList recognitionResult;
